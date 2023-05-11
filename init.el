@@ -1,11 +1,16 @@
-;; init.el -- the endless rewrite
+;;; init.el -- the endless rewrite
+
+;;; Commentary:
+;; --
+
+;;; Code:
 
 (setq user-full-name "Martin Penckert"
       user-mail-address "martin.penckert@gmail.com")
 
-(menu-bar-mode -1)              ; no need for menu bar
-(tool-bar-mode -1)              ; don't show toolbar
-(scroll-bar-mode -1)            ; nor scroll bars
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 
 ;; Install straight.el
 (defvar bootstrap-version)
@@ -37,7 +42,7 @@
 (setq-default frame-title-format '("%b")) ; Make window title the buffer name
 (setq ring-bell-function 'ignore)         ; Disable bell sound
 (fset 'yes-or-no-p 'y-or-n-p)             ; y-or-n-p makes answering questions faster
-(setq linum-format "%6d ")                ; Line number format
+(setq linum-format "4d ")                ; Line number format
 (setq frame-resize-pixelwise t)
 (delete-selection-mode 1)                 ; Selected text will be overwritten when you start typing
 (global-auto-revert-mode t)               ; Auto-update buffer if file has changed on disk
@@ -50,10 +55,8 @@
 
 (use-package magit)
 
-;;(use-package eglot)
-(use-package go-mode
-  :hook ((before-save . lsp-format-buffer)
-	 (before-save . lsp-organize-imports)))
+(use-package flycheck
+  :init (global-flycheck-mode))
 
 ;; ---------------------------------------------------------
 ;;
@@ -104,32 +107,10 @@
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
+  :bind-keymap (("C-c p" . projectile-command-map))
   :init
   (when (file-directory-p "~/Code") (setq projectile-project-search-path '("~/Code")))
   (setq projectile-switch-project-action #'projectile-dired))
-
-;; ---------------------------------------------------------
-;;
-;;  LSP
-;;
-;; ---------------------------------------------------------
-;; (use-package lsp-mode
-;;   :init (setq lsp-keymap-prefix "C-c l")
-;;   :hook ((lsp-mode . lsp-enable-which-key-integration)
-;; 	 (lsp-mode . lsp-ui-mode)
-;; 	 (go-mode . lsp-deferred))
-;;   :commands (lsp lsp-deferred)
-;;   :config (setq lsp-completion-provider :none))
-
-;; (defun corfu-lsp-setup ()
-;;   (setq-local completion-styles '(orderless)
-;;               completion-category-defaults nil))
-;; (add-hook 'lsp-mode-hook #'corfu-lsp-setup)
-
-;; (use-package lsp-ui
-;;   :commands lsp-ui-mode)
 
 (use-package eglot)
 
@@ -139,21 +120,7 @@
 ;;
 ;; ---------------------------------------------------------
 (use-package vertico
-  :init
-  (vertico-mode)
-
-  ;; Different scroll margin
-  ;; (setq vertico-scroll-margin 0)
-
-  ;; Show more candidates
-  ;; (setq vertico-count 20)
-
-  ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
-
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
-  )
+  :init (vertico-mode))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
@@ -168,17 +135,11 @@
   :ensure t
   :config
   ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (setq doom-themes-enable-bold t
+	doom-themes-enable-italic t)
   (load-theme 'doom-laserwave t)
-
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
-  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  (doom-themes-treemacs-config)
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
@@ -207,7 +168,7 @@
 (use-package format-all
   :init (format-all-mode)
   :hook ((format-all-mode . format-all-ensure-formatter)
-	 (prog-mode . format-all-mode)))
+	 (go-mode . format-all-mode)))
 
 (use-package move-text
   :config
@@ -222,6 +183,10 @@
   (advice-add 'move-text-up :after 'indent-region-advice)
   (advice-add 'move-text-down :after 'indent-region-advice))
 
+(use-package go-mode)
+
+
+
 ;; ---------------------------------------------------------
 ;;
 ;;  org mode
@@ -230,11 +195,11 @@
 
 (use-package visual-fill-column
   :config
-  (setq visual-fill-column-width 80
+  (setq visual-fill-column-width 100
 	visual-fill-column-center-text t))
 
 (defun felbit/org-present-start ()
-  "Center presentation and wrap lines"
+  "Center presentation and wrap lines."
   (visual-fill-column-mode 1)
   (visual-line-mode 1)
   (org-present-big)
@@ -242,7 +207,7 @@
   (setq org-hide-emphasis-markers t))
 
 (defun felbit/org-present-stop ()
-  "Stop centering document"
+  "Stop centering document."
   (visual-fill-column-mode 0)
   (visual-line-mode 0)
   (org-present-small)
@@ -260,6 +225,9 @@
 ;;  Functions
 ;;
 ;; ---------------------------------------------------------
+
+(setq eww-retrieve-command
+      '("chromium-browser" "--headless" "--dump-dom"))
 
 (defun smarter-move-beginning-of-line (arg)
   "Move point back to indentation of beginning of line.
